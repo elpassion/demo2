@@ -23,6 +23,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.postgresql:postgresql")
 	implementation("org.flywaydb:flyway-core")
+	testImplementation("org.hsqldb:hsqldb")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
