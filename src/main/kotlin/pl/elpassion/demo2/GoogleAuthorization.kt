@@ -7,11 +7,10 @@ import org.springframework.web.client.RestOperations
 import java.lang.RuntimeException
 
 class GoogleAuthorization(val client: RestOperations) {
-    fun authorize(token: String) {
+    fun authorize(token: String): String {
         try {
-            client.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${token}", TokenResponse::class.java)
+            return client.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${token}", TokenResponse::class.java)!!.email
         } catch (e: HttpClientErrorException.BadRequest) {
-
             throw GoogleAuthorizationError()
         }
     }
@@ -19,7 +18,7 @@ class GoogleAuthorization(val client: RestOperations) {
 
 class GoogleAuthorizationError : RuntimeException()
 
-data class TokenResponse(val email: String? = null, val errorDescription: String? = null)
+data class TokenResponse(val email: String)
 
 class RestResponseErrorHandler : ResponseErrorHandler {
 

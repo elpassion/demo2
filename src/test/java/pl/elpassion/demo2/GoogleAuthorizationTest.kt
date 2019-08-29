@@ -12,7 +12,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestOperations
-import org.springframework.web.client.RestTemplate
 import java.nio.charset.Charset
 
 class GoogleAuthorizationTest {
