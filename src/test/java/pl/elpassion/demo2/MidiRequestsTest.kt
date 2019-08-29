@@ -11,6 +11,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @ExtendWith(SpringExtension::class)
@@ -18,22 +19,31 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @ActiveProfiles("test")
 class MidiRequestsTest {
 
-    @Autowired private lateinit var mockMvc: MockMvc
-    @MockBean private lateinit var googleAuthorization: GoogleAuthorization
+    @Autowired
+    private lateinit var mockMvc: MockMvc
+    @MockBean
+    private lateinit var googleAuthorization: GoogleAuthorization
+    @MockBean
+    private lateinit var midiRepository: MidiRepository
 
     @Test
-    fun shouldThrowWhenListingByUnauthorizedUsers() {
+    fun listShouldThrowWhenListingByUnauthorizedUser() {
         whenever(googleAuthorization.authorize("invalid-token")).doThrow(GoogleAuthorizationError())
-        mockMvc.perform(
-                get("/midis").header("authorization", "invalid-token")
-        ).andExpect(status().isForbidden)
+        mockMvc
+                .perform(get("/midis").header("authorization", "invalid-token"))
+                .andExpect(status().isForbidden)
     }
 
     @Test
-    fun shouldReturnEmptyListOfMidisWhenAuthorized() {
-        whenever(googleAuthorization.authorize("valid-token")).thenReturn("mihau@gmail.com")
-        mockMvc.perform(
-                get("/midis").header("authorization", "valid-token")
-        ).andExpect(status().isOk)
+    fun listShouldReturnMidisListForUser() {
+        val userId = "mihau@gmail.com"
+        val userMidis = listOf(Midi(id = "midi1", data = "ABC".toByteArray(), userId = userId))
+        whenever(googleAuthorization.authorize("valid-token")).thenReturn(userId)
+        whenever(midiRepository.findByUserId(userId)).thenReturn(userMidis)
+        val expectedResponse = "[{\"id\": \"midi1\", \"data\": \"QUJD\", \"userId\": \"mihau@gmail.com\"}]"
+        mockMvc
+                .perform(get("/midis").header("authorization", "valid-token"))
+                .andExpect(status().isOk)
+                .andExpect(content().json(expectedResponse))
     }
 }
