@@ -24,7 +24,12 @@ dependencies {
 	implementation("org.postgresql:postgresql")
 	implementation("org.flywaydb:flyway-core")
 	testImplementation("org.hsqldb:hsqldb")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude(module = "junit")
+	}
+	testImplementation("org.junit.jupiter:junit-jupiter-api")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+	testCompile("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
 }
 
 tasks.withType<KotlinCompile> {
@@ -32,4 +37,8 @@ tasks.withType<KotlinCompile> {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
 		jvmTarget = "1.8"
 	}
+}
+
+tasks.withType<Test> {
+	useJUnitPlatform()
 }
