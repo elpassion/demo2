@@ -1,16 +1,15 @@
 package pl.elpassion.demo2
 
-import org.springframework.http.client.ClientHttpResponse
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.ResponseErrorHandler
 import org.springframework.web.client.RestOperations
-import java.lang.RuntimeException
 
 class GoogleAuthorization(val client: RestOperations) {
     fun authorize(token: String): String {
         try {
-            return client.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${token}", TokenResponse::class.java)!!.email
-        } catch (e: HttpClientErrorException.BadRequest) {
+            val url = "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${token}"
+            return client
+                    .getForObject(url, TokenResponse::class.java)!!
+                    .email
+        } catch (e: Throwable) {
             throw GoogleAuthorizationError()
         }
     }
@@ -19,15 +18,3 @@ class GoogleAuthorization(val client: RestOperations) {
 class GoogleAuthorizationError : RuntimeException()
 
 data class TokenResponse(val email: String)
-
-class RestResponseErrorHandler : ResponseErrorHandler {
-
-    override fun hasError(response: ClientHttpResponse): Boolean {
-        return !response.statusCode.is2xxSuccessful
-    }
-
-    override fun handleError(response: ClientHttpResponse) {
-        throw GoogleAuthorizationError()
-    }
-
-}
