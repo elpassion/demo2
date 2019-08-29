@@ -2,15 +2,19 @@ package pl.elpassion.demo2
 
 import com.nhaarman.mockitokotlin2.doThrow
 import com.nhaarman.mockitokotlin2.whenever
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -26,24 +30,65 @@ class MidiRequestsTest {
     @MockBean
     private lateinit var midiRepository: MidiRepository
 
+    private val invalidToken = "invalid-token"
+    private val validToken = "valid-token"
+    private val userId = "mihau@gmail.com"
+
+    @BeforeEach
+    fun setUp() {
+        whenever(googleAuthorization.authorize(invalidToken)).doThrow(GoogleAuthorizationError())
+        whenever(googleAuthorization.authorize(validToken)).thenReturn(userId)
+    }
+
     @Test
-    fun listShouldThrowWhenListingByUnauthorizedUser() {
-        whenever(googleAuthorization.authorize("invalid-token")).doThrow(GoogleAuthorizationError())
+    fun listShouldRequireAuthorization() {
         mockMvc
-                .perform(get("/midis").header("authorization", "invalid-token"))
+                .perform(get("/midis").unauthorized())
                 .andExpect(status().isForbidden)
     }
 
     @Test
     fun listShouldReturnMidisListForUser() {
-        val userId = "mihau@gmail.com"
         val userMidis = listOf(Midi(id = "midi1", data = "ABC".toByteArray(), userId = userId))
-        whenever(googleAuthorization.authorize("valid-token")).thenReturn(userId)
         whenever(midiRepository.findByUserId(userId)).thenReturn(userMidis)
         val expectedResponse = "[{\"id\": \"midi1\", \"data\": \"QUJD\", \"userId\": \"mihau@gmail.com\"}]"
         mockMvc
-                .perform(get("/midis").header("authorization", "valid-token"))
+                .perform(get("/midis").authorized())
                 .andExpect(status().isOk)
                 .andExpect(content().json(expectedResponse))
+    }
+
+    @Test
+    fun createShouldRequireAuthorization() {
+        mockMvc
+                .perform(post("/midis").unauthorized().contentType(MediaType.APPLICATION_JSON).content("{ \"id\": \"midi1\", \"data\": \"QUJD\" }"))
+                .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun createShouldValidateBody() {
+        mockMvc
+                .perform(post("/midis").authorized().contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun createShouldCreateMidi() {
+        val midi = Midi(userId = userId, data = "ABC".toByteArray(), id = "midi1")
+        whenever(midiRepository.save(midi)).thenReturn(midi)
+        mockMvc
+                .perform(post("/midis").authorized().contentType(MediaType.APPLICATION_JSON).content("{ \"id\": \"midi1\", \"data\": \"QUJD\" }"))
+                .andExpect(status().isCreated)
+                .andExpect(content().json("{\"id\": \"midi1\", \"data\": \"QUJD\", \"userId\": \"mihau@gmail.com\"}"))
+    }
+
+    private fun MockHttpServletRequestBuilder.authorized(): MockHttpServletRequestBuilder {
+        header("authorization", validToken)
+        return this
+    }
+
+    private fun MockHttpServletRequestBuilder.unauthorized(): MockHttpServletRequestBuilder {
+        header("authorization", invalidToken)
+        return this
     }
 }
