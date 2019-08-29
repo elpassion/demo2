@@ -11,14 +11,14 @@ import org.mockito.ArgumentMatchers.anyString
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.RestOperations
+import org.springframework.web.client.RestTemplate
 import java.nio.charset.Charset
 
 class GoogleAuthorizationTest {
     @Test
     fun shouldThrowErrorWhenTokenIsIncorrect() {
         val token = "incorrect-token"
-        val mockedClient = mock<RestOperations> {
+        val mockedClient = mock<RestTemplate> {
             on { getForObject<TokenResponse>(anyString(), any()) }.doThrow(HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "", HttpHeaders.EMPTY, ByteArray(0), Charset.defaultCharset()))
         }
         assertThrows<GoogleAuthorizationError> {
@@ -30,7 +30,7 @@ class GoogleAuthorizationTest {
     fun shouldReturnEmailWhenTokenIsCorrect() {
         val token = "correct-token"
         val email = "michal@michal.pl"
-        val mockedClient = mock<RestOperations> {
+        val mockedClient = mock<RestTemplate> {
             on { getForObject<TokenResponse>(anyString(), any()) }.doReturn(TokenResponse(email = email))
         }
         assertEquals(email, GoogleAuthorization(mockedClient).authorize(token))
