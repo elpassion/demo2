@@ -84,13 +84,11 @@ class MidiRequestsTest {
                 .andExpect(content().json("{\"id\": \"midi1\", \"data\": \"QUJD\", \"userId\": \"mihau@gmail.com\"}"))
     }
 
-    private fun MockHttpServletRequestBuilder.authorized(): MockHttpServletRequestBuilder {
+    private fun MockHttpServletRequestBuilder.authorized() = apply {
         header("authorization", validToken)
-        return this
     }
 
-    private fun MockHttpServletRequestBuilder.unauthorized(): MockHttpServletRequestBuilder {
+    private fun MockHttpServletRequestBuilder.unauthorized() = apply {
         header("authorization", invalidToken)
-        return this
     }
 }
