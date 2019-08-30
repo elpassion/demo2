@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile
 
 @RestController
 class MidiController constructor(val googleAuthorization: GoogleAuthorization, val midiRepository: MidiRepository) {
-    @CrossOrigin(origins = ["*"])
+    @CrossOrigin
     @GetMapping("/midis")
     fun listMidis(@RequestHeader("authorization") token: String): ResponseEntity<List<Midi>> {
         try {
@@ -19,7 +19,7 @@ class MidiController constructor(val googleAuthorization: GoogleAuthorization, v
         }
     }
 
-    @CrossOrigin(origins = ["*"])
+    @CrossOrigin
     @PostMapping("/midis")
     fun addMidi(@RequestHeader("authorization") token: String, @RequestParam("file") file: MultipartFile, @RequestParam("id") id: String): ResponseEntity<Midi> {
         try {

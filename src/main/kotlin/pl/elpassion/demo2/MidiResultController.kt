@@ -10,7 +10,7 @@ class MidiResultController(
         val midiRepository: MidiRepository,
         val midiResultRepository: MidiResultRepository
 ) {
-    @CrossOrigin(origins = ["*"])
+    @CrossOrigin
     @PostMapping("/midis/{midiId}/results")
     fun createResult(@RequestHeader("authorization") token: String, @PathVariable midiId: String, @RequestBody createResultDto: CreateResultDto): ResponseEntity<MidiResult> {
         try {
