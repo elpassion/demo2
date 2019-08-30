@@ -9,12 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -33,6 +34,7 @@ class MidiRequestsTest {
     private val invalidToken = "invalid-token"
     private val validToken = "valid-token"
     private val userId = "mihau@gmail.com"
+    private val exampleMidiFile = MockMultipartFile("data", "example.mid", "text/plain", "ABC".toByteArray())
 
     @BeforeEach
     fun setUp() {
@@ -61,14 +63,14 @@ class MidiRequestsTest {
     @Test
     fun createShouldRequireAuthorization() {
         mockMvc
-                .perform(post("/midis").unauthorized().contentType(MediaType.APPLICATION_JSON).content("{ \"id\": \"midi1\", \"data\": \"QUJD\" }"))
+                .perform(multipart("/midis").file("file", exampleMidiFile.bytes).param("id", "midi1").unauthorized().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden)
     }
 
     @Test
     fun createShouldValidateBody() {
         mockMvc
-                .perform(post("/midis").authorized().contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .perform(multipart("/midis").file("file", exampleMidiFile.bytes).authorized().contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest)
     }
 
@@ -77,7 +79,7 @@ class MidiRequestsTest {
         val midi = Midi(userId = userId, data = "ABC".toByteArray(), id = "midi1")
         whenever(midiRepository.save(midi)).thenReturn(midi)
         mockMvc
-                .perform(post("/midis").authorized().contentType(MediaType.APPLICATION_JSON).content("{ \"id\": \"midi1\", \"data\": \"QUJD\" }"))
+                .perform(multipart("/midis").file("file", exampleMidiFile.bytes).param("id", "midi1").authorized())
                 .andExpect(status().isCreated)
                 .andExpect(content().json("{\"id\": \"midi1\", \"data\": \"QUJD\", \"userId\": \"mihau@gmail.com\"}"))
     }
