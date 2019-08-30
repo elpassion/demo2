@@ -1,21 +1,21 @@
 package pl.elpassion.demo2
 
 import java.io.Serializable
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.Table
+import javax.persistence.*
 
 @Entity
 @Table(name = "midis")
+@IdClass(MidiId::class)
 data class Midi(
         @Id
         var id: String,
+        @Id
         @Column(name = "user_id")
         var userId: String,
-        @Column(name = "data", columnDefinition = "BLOB")
+        @Column(name = "data", columnDefinition = "bytea")
         var data: ByteArray
 ) : Serializable {
+
         override fun equals(other: Any?): Boolean {
                 if (this === other) return true
                 if (javaClass != other?.javaClass) return false
@@ -35,4 +35,8 @@ data class Midi(
                 result = 31 * result + data.contentHashCode()
                 return result
         }
+}
+class MidiId : Serializable {
+        private val id: String? = null
+        private val userId: String? = null
 }

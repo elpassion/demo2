@@ -11,7 +11,7 @@ class MidiController constructor(val googleAuthorization: GoogleAuthorization, v
         try {
             val userId = googleAuthorization.authorize(token)
             return ResponseEntity(midiRepository.findByUserId(userId), HttpStatus.OK)
-        } catch (e: Throwable) {
+        } catch (e: GoogleAuthorizationError) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
     }
@@ -22,7 +22,7 @@ class MidiController constructor(val googleAuthorization: GoogleAuthorization, v
             val userId = googleAuthorization.authorize(token)
             val midi = midiRepository.save(Midi(id = createMidiDto.id, userId = userId, data = createMidiDto.data))
             return ResponseEntity(midi, HttpStatus.CREATED)
-        } catch (e: Throwable) {
+        } catch (e: GoogleAuthorizationError) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
     }

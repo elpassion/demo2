@@ -1,0 +1,1 @@
+create table midis (id varchar(255) not null, user_id varchar(255) not null, data bytea, primary key (id, user_id))
