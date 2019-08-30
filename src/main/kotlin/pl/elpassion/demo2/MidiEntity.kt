@@ -15,8 +15,8 @@ data class Midi(
         @Column(name = "data", columnDefinition = "bytea")
         var data: ByteArray
 ) : Serializable {
-    @OneToMany(mappedBy = "midi")
-    var results: List<MidiResult>? = listOf()
+    @OneToMany(mappedBy = "midi", fetch = FetchType.EAGER)
+    var results: List<MidiResult> = listOf()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

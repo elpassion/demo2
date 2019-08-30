@@ -11,7 +11,8 @@ class MidiController constructor(val googleAuthorization: GoogleAuthorization, v
     fun listMidis(@RequestHeader("authorization") token: String): ResponseEntity<List<Midi>> {
         try {
             val userId = googleAuthorization.authorize(token)
-            return ResponseEntity(midiRepository.findByUserId(userId), HttpStatus.OK)
+            val midis = midiRepository.findByUserId(userId).sortedBy { it.results.lastOrNull()?.score }
+            return ResponseEntity(midis, HttpStatus.OK)
         } catch (e: GoogleAuthorizationError) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
