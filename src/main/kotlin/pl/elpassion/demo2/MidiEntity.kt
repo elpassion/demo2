@@ -13,9 +13,10 @@ data class Midi(
         @Column(name = "user_id")
         var userId: String,
         @Column(name = "data", columnDefinition = "bytea")
-        var data: ByteArray
+        var data: ByteArray,
+        @OneToMany
+        var results: List<MidiResult> = listOf()
 ) : Serializable {
-
         override fun equals(other: Any?): Boolean {
                 if (this === other) return true
                 if (javaClass != other?.javaClass) return false

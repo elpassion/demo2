@@ -27,6 +27,4 @@ class MidiController constructor(val googleAuthorization: GoogleAuthorization, v
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
     }
-
-    data class CreateMidiDto(val id: String, val data: ByteArray)
 }
