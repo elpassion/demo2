@@ -1,39 +1,60 @@
 package pl.elpassion.demo2
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.doThrow
-import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.*
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.mockito.ArgumentMatchers.anyString
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import java.nio.charset.Charset
 
+@DisplayName("GoogleAuthorization #authorize")
 class GoogleAuthorizationTest {
-    @Test
-    fun shouldThrowErrorWhenTokenIsIncorrect() {
-        val token = "incorrect-token"
-        val mockedClient = mock<RestTemplate> {
-            on { getForObject<TokenResponse>(anyString(), any()) }.doThrow(HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "", HttpHeaders.EMPTY, ByteArray(0), Charset.defaultCharset()))
-        }
-        assertThrows<GoogleAuthorizationError> {
-            GoogleAuthorization(mockedClient).authorize(token)
+    private val mockedClient = mock<RestTemplate>()
+    private val incorrectToken = "incorrect-token"
+    private val correctToken = "correct-token"
+    private val stubbedEmail = "michal@michal.pl"
+    private val googleAuthorization = GoogleAuthorization(mockedClient)
+    private val badRequestError = HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "", HttpHeaders.EMPTY, ByteArray(0), Charset.defaultCharset())
+
+    @BeforeEach
+    fun stubApi() {
+        whenever(
+            mockedClient.getForObject<TokenResponse>(
+                eq("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=$correctToken"),
+                any()
+            )
+        ).thenReturn(TokenResponse(email = stubbedEmail))
+
+        whenever(
+            mockedClient.getForObject<TokenResponse>(
+                eq("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=$incorrectToken"),
+                any()
+            )
+        ).thenThrow(badRequestError)
+    }
+
+    @Nested
+    @DisplayName("With incorrect token")
+    inner class WithIncorrectToken {
+        @Test
+        @DisplayName("throws error")
+        fun shouldThrowError() {
+            assertThrows<GoogleAuthorizationError> {
+                googleAuthorization.authorize(incorrectToken)
+            }
         }
     }
 
-    @Test
-    fun shouldReturnEmailWhenTokenIsCorrect() {
-        val token = "correct-token"
-        val email = "michal@michal.pl"
-        val mockedClient = mock<RestTemplate> {
-            on { getForObject<TokenResponse>(anyString(), any()) }.doReturn(TokenResponse(email = email))
+    @Nested
+    @DisplayName("With correct token")
+    inner class WithCorrectToken {
+        @Test
+        @DisplayName("returns email")
+        fun shouldReturnEmail() {
+            assertEquals(googleAuthorization.authorize(correctToken), stubbedEmail)
         }
-        assertEquals(email, GoogleAuthorization(mockedClient).authorize(token))
     }
 }
 
