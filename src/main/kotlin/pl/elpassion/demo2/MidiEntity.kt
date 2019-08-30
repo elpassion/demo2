@@ -13,31 +13,33 @@ data class Midi(
         @Column(name = "user_id")
         var userId: String,
         @Column(name = "data", columnDefinition = "bytea")
-        var data: ByteArray,
-        @OneToMany
-        var results: List<MidiResult> = listOf()
+        var data: ByteArray
 ) : Serializable {
-        override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (javaClass != other?.javaClass) return false
+    @OneToMany(mappedBy = "midi")
+    var results: List<MidiResult>? = listOf()
 
-                other as Midi
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-                if (id != other.id) return false
-                if (userId != other.userId) return false
-                if (!data.contentEquals(other.data)) return false
+        other as Midi
 
-                return true
-        }
+        if (id != other.id) return false
+        if (userId != other.userId) return false
+        if (!data.contentEquals(other.data)) return false
 
-        override fun hashCode(): Int {
-                var result = id.hashCode()
-                result = 31 * result + userId.hashCode()
-                result = 31 * result + data.contentHashCode()
-                return result
-        }
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + userId.hashCode()
+        result = 31 * result + data.contentHashCode()
+        return result
+    }
 }
+
 class MidiId : Serializable {
-        private val id: String? = null
-        private val userId: String? = null
+    private val id: String? = null
+    private val userId: String? = null
 }

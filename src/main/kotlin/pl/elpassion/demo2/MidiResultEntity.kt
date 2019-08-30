@@ -6,7 +6,7 @@ import java.util.*
 import javax.persistence.*
 
 @Entity
-@Table(name = "midi_results")
+@Table(name = "midis_results")
 data class MidiResult(
         @Id
         @GeneratedValue(strategy = GenerationType.AUTO)
@@ -14,7 +14,7 @@ data class MidiResult(
 
         @ManyToOne
         @JoinColumns(
-                JoinColumn(name = "user_id", referencedColumnName = "user_id"),
+                JoinColumn(name = "midi_user_id", referencedColumnName = "user_id"),
                 JoinColumn(name = "midi_id", referencedColumnName = "id")
         )
         private var midi: Midi,
@@ -24,6 +24,7 @@ data class MidiResult(
 ): Serializable {
     @CreatedDate
     @Column(name = "created_at")
-    var createdAt: Date? = null
+    var createdAt: Date? = Date()
+
     val midiId get() = midi.id
 }
